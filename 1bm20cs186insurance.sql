@@ -1,78 +1,52 @@
-show databases;
-create database vignesh_supplier_insurance;
-use vignesh_supplier_insurance;
+CREATE TABLE PERSON(driver_id char(10), Name char(20), address char(40), PRIMARY KEY(driver_id));
+CREATE TABLE CAR (Regno char(10), model char(10), year int, PRIMARY KEY(Regno));
+CREATE TABLE ACCIDENT(report_number int, datex date, location char(40), PRIMARY KEY(report_number));
+CREATE TABLE OWNS(driver_id char(10), Regno char(10), PRIMARY KEY(driver_id, Regno), FOREIGN KEY(driver_id) REFERENCES PERSON(driver_id), FOREIGN KEY(Regno) REFERENCES CAR(Regno));
+CREATE TABLE PARTICIPATED (driver_id char(10), Regno char(10), report_number int, damage_amount int, PRIMARY KEY(driver_id, Regno, report_number), FOREIGN KEY(driver_id) REFERENCES PERSON(driver_id), FOREIGN KEY(Regno) REFERENCES CAR(Regno), FOREIGN KEY(report_number) REFERENCES ACCIDENT(report_number));
 
-create table SUPPLIERS
-(
-sid int(5) primary key,
-sname varchar(20),
-city varchar(20));
+INSERT INTO person VALUES('A10','James',â€™Renukanagarâ€™);
+INSERT INTO person VALUES('A14','Rishabh Pant',â€™Srinagarâ€™);
+INSERT INTO person VALUES('B33', â€˜David',â€™Mumbaiâ€™);
+INSERT INTO person VALUES(â€˜B56',â€™Tom ',â€™Gopal Nagarâ€™);
+INSERT INTO person VALUES(â€˜C14',â€™Ronith ',â€™Toy Townâ€™);
+commit;
+SELECT*FROM person;
 
-create table PARTS
-(
-pid int(5) primary key,
-pname varchar(20),
-color varchar(10));
 
-create table CATALOG
-(
-sid int(5),
-pid int(5),
-cost float(6),
-primary key(sid,pid),
-foreign key(pid) references PARTS(pid) on delete cascade,
-foreign key(sid) references SUPPLIERS(sid) on delete cascade
-);
-show tables;
+INSERT INTO car VALUES('KA690','Nano',2006);
+INSERT INTO car VALUES('KA466','Indica',2000);
+INSERT INTO car VALUES('BR720','Sumo',2010);
+INSERT INTO car VALUES('CK144','Alto',2014);
+INSERT INTO car VALUES('RL221','Zing',2015);
+commit;
+SELECT*FROM car;
 
-insert into SUPPLIERS values('1001','abc','xyz');
-insert into SUPPLIERS values('1002','abc1','xyz1');
-insert into SUPPLIERS values('1003','abc2','xyz2');
-insert into SUPPLIERS values('1004','abc3','xyz3');
-insert into SUPPLIERS values('1005','abc4','xyz4');
-insert into SUPPLIERS values('1006','AW','xyz5');
-select * from suppliers;
+INSERT INTO accident VALUES(123,'2001-01-04','Delhi');
+INSERT INTO accident VALUES(456,'2008-06-08','Kolkata');
+INSERT INTO accident VALUES(789,'2004-04-10','Bangalore');
+INSERT INTO accident VALUES(480,'2012-12-15','Jaipur');
+INSERT INTO accident VALUES(921,'2003-08-20','Mumbai');
+commit;
+select*from accident;
 
-insert into parts values('2001','name1','red');
-insert into parts values('2002','name2','blue');
-insert into parts values('2003','name3','black');
-insert into parts values('2004','name4','green');
-insert into parts values('2005','name5','yellow');
-insert into parts values('2006','AM','red accent');
-select * from parts;
+INSERT INTO owns VALUES('A01','BR720');
+INSERT INTO owns VALUES('A14','CK144');
+INSERT INTO owns VALUES('B33','KA466');
+INSERT INTO owns VALUES('B56','KA690');
+INSERT INTO owns VALUES('C14','RL221');
 
-insert into catalog values('1001','2001','15');
-insert into catalog values('1002','2002','25');
-insert into catalog values('1003','2003','35');
-insert into catalog values('1004','2004','45');
-insert into catalog values('1005','2005','55');
-insert into catalog values('1006','2006','65');
-select * from catalog;
+SELECT*FROM owns;
+INSERT INTO participated VALUES('A01','BR720',123,400);
+INSERT INTO participated VALUES('A14','CK144',456,1000);
+INSERT INTO participated VALUES('B33','KA466',480,20);
+INSERT INTO participated VALUES('B56','KA690',789,90000);
+INSERT INTO participated VALUES('C14','RL221',921,1500);
+commit;
+SELECT*from participated;
 
-#Find the pnames of parts for which there is some supplier.
-select distinct P.pname 
-from parts P,Catalog C 
-where P.pid=C.pid;
 
-#Find the snames of suppliers who supply every part.
-select distinct s.sname 
-from suppliers s,Catalog C 
-where s.sid=C.sid;
+1)	UPDATE participated SET damage_amount=25000 WHERE report_number=123 AND Regno=â€™BR720â€™;
+2)	INSERT INTO accident values(810, â€œ2008-04-10â€, â€œChandigardhâ€);
+3)	SELECT COUNT(driver_id) FROM participated x,accident y WHERE x.report_number=y.report_number and year(y.datex)=2008;
+4)	SELECT COUNT(driver_id) FROM owns x, car y WHERE x.Regno=y.Regno and y.model='Nano';
 
-#Find the snames of suppliers who supply every red part.
-select distinct s.sname
-from suppliers s,catalog c,parts p
-where p.color='red' and p.pid=c.pid and s.sid=c.sid;
-
-#Find the pnames of parts supplied by Acme Widget Suppliers and by no one else.
-select p.pname
-from suppliers s,catalog c,parts p
-where s.sname='AW' and p.pid=c.pid and s.sid=c.sid;
-
-#Find the sids of suppliers who charge more for some part than the average cost of that part (averaged over
-#all the suppliers who supply that part)
-select s.sid
-from suppliers s
-where cost >(
-select avg(cost) 
-from catalog);
